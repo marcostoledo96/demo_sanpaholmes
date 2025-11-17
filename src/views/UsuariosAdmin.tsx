@@ -65,7 +65,7 @@ export function UsuariosAdmin() {
       setLoading(true);
       
       // Cargar usuarios
-      const resUsuarios = await fetch(`${API_URL}/usuarios`, {
+      const resUsuarios = await fetch(`${API_URL}/api/usuarios`, {
         headers: {
           'Authorization': `Bearer ${getToken()}`
         }
@@ -73,7 +73,7 @@ export function UsuariosAdmin() {
       const dataUsuarios = await resUsuarios.json();
       
       // Cargar roles
-      const resRoles = await fetch(`${API_URL}/roles`, {
+      const resRoles = await fetch(`${API_URL}/api/roles`, {
         headers: {
           'Authorization': `Bearer ${getToken()}`
         }
@@ -98,7 +98,7 @@ export function UsuariosAdmin() {
 
   const verDetalle = async (usuario: Usuario) => {
     try {
-      const res = await fetch(`${API_URL}/usuarios/${usuario.id}`, {
+      const res = await fetch(`${API_URL}/api/usuarios/${usuario.id}`, {
         headers: {
           'Authorization': `Bearer ${getToken()}`
         }
@@ -195,8 +195,8 @@ export function UsuariosAdmin() {
 
     try {
       const url = creando 
-        ? `${API_URL}/usuarios`
-        : `${API_URL}/usuarios/${editando}`;
+        ? `${API_URL}/api/usuarios`
+        : `${API_URL}/api/usuarios/${editando}`;
       
       const method = creando ? 'POST' : 'PUT';
       
@@ -245,7 +245,7 @@ export function UsuariosAdmin() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/usuarios/${cambiandoPassword}/password`, {
+      const res = await fetch(`${API_URL}/api/usuarios/${cambiandoPassword}/password`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${getToken()}`,
@@ -282,7 +282,7 @@ export function UsuariosAdmin() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/usuarios/${id}`, {
+      const res = await fetch(`${API_URL}/api/usuarios/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${getToken()}`
