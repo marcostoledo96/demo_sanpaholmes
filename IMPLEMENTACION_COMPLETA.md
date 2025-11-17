@@ -29,8 +29,8 @@
 
 #### Roles Predefinidos
 1. **admin** - Acceso total (10 permisos)
-2. **vendor** - Gestión de ventas y productos (4 permisos)
-3. **readonly** - Solo visualización (2 permisos)
+2. **vendedor** - Gestión de productos y flujo de ventas (6 permisos)
+3. **visitador** - Solo visualización (2 permisos)
 
 #### Permisos por Categoría
 **Ventas** (4):
@@ -79,7 +79,7 @@ GET    /api/roles/permisos/all     - Listar permisos disponibles
 
 **Características**:
 - Validación de datos en backend
-- Protección contra eliminación de roles sistema (admin, vendor)
+- Protección contra eliminación de roles sistema (admin, vendedor, visitador)
 - Bloqueo de escrituras en Vercel (demo mode)
 - Autenticación JWT obligatoria
 - Verificación de permisos: ver_roles, gestionar_roles
@@ -122,7 +122,7 @@ GET    /api/roles/permisos/all     - Listar permisos disponibles
 
 - **Eliminar Rol**:
   - Confirmación antes de eliminar
-  - Bloqueo de roles sistema (admin, vendor)
+  - Bloqueo de roles sistema (admin, vendedor, visitador)
   - Soft delete (activo = 0)
 
 **UI/UX**:
@@ -206,7 +206,7 @@ interface StockInfo {
 
 ### Estado Actual
 ```
-Roles: 3 (admin, vendor, readonly)
+Roles: 3 (admin, vendedor, visitador)
 Permisos: 10 (4 categorías)
 Relaciones roles_permisos: 16
 Detalles compra migrados: 6
@@ -361,6 +361,3 @@ npm run dev
 ---
 
 **Estado**: ✅ **COMPLETO Y FUNCIONAL**
-**Fecha**: Diciembre 2024
-**Autor**: Marcos
-**Proyecto**: San Pa' Holmes - Sistema de Pedidos Policía

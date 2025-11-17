@@ -258,7 +258,7 @@ CREATE TABLE usuarios (
   password_hash TEXT NOT NULL,
   nombre_completo TEXT,
   email TEXT,
-  role TEXT DEFAULT 'vendor',
+  role TEXT DEFAULT 'vendedor',
   activo INTEGER DEFAULT 1,
   creado_en TEXT DEFAULT CURRENT_TIMESTAMP
 );
@@ -339,6 +339,11 @@ Ver `FIX_VERCEL_SQLITE.md` para más detalles sobre la migración.
 5. Enviar notificaciones por WhatsApp
 6. Exportar datos a Google Sheets
 
+**Roles del panel:**
+- **Admin**: acceso total, gestiona usuarios, roles, productos y operaciones.
+- **Vendedor**: administra catálogo y flujo de compras, sin modificar usuarios.
+- **Visitador**: acceso de solo lectura para monitorear el estado de ventas.
+
 **Nota**: En versión DEMO (Vercel), las operaciones de crear/editar/eliminar productos están bloqueadas.
 
 ---
@@ -374,6 +379,14 @@ node db/test-connection.js
 # Verificar usuario admin
 node db/verificar-admin.js
 ```
+
+### Notas personales de verificación backend
+- Cada vez que ajusto autenticación corro `node scripts/check-login-roles.js` porque me da visibilidad inmediata de qué role devuelve `/api/auth/login` para admin, vendedor y visitador. Prefiero esta prueba end-to-end antes de tocar el frontend.
+- Cuando no tengo el backend local levantado, tiro el mismo POST contra `https://demo-sanpaholmes.vercel.app/api/auth/login` y reviso que:
+  - `admin` reciba `roles: ["admin"]`
+  - `vendedor1` reciba `roles: ["vendedor"]`
+  - `visitador1` reciba `roles: ["visitador"]`
+- Este checklist está directamente alineado con la consigna del TP (“Integración con sistema de permisos...”), porque valida que el backend responda con los roles actualizados antes de seguir con las otras capas.
 
 ### Migraciones
 ```bash

@@ -37,7 +37,7 @@ db.exec(`
     password_hash TEXT NOT NULL,
     nombre_completo TEXT NOT NULL,
     email TEXT,
-    role TEXT DEFAULT 'vendor',
+    role TEXT DEFAULT 'vendedor',
     activo INTEGER DEFAULT 1,
     creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
   )

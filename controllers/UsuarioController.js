@@ -28,6 +28,7 @@ class UsuarioController {
       `).all();
 
       // Obtener estadísticas
+      // Genero un snapshot de roles para el dashboard sin hacer otra llamada HTTP
       const stats = db.prepare(`
         SELECT 
           r.nombre as role,
@@ -122,6 +123,7 @@ class UsuarioController {
       db = getDB();
 
       // Validaciones
+      // No dejamos usuarios "fantasma" sin rol ni credenciales mínimas
       if (!username || !password || !nombre || !role_id) {
         return res.status(400).json({
           success: false,

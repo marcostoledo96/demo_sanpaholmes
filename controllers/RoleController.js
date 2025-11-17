@@ -168,7 +168,8 @@ async function eliminarRol(req, res) {
     
     // Verificar que no sea un rol del sistema
     const rol = RoleModel.obtenerRolPorId(id);
-    if (rol && ['admin', 'vendor'].includes(rol.nombre)) {
+    const systemRoles = ['admin', 'vendedor', 'visitador'];
+    if (rol && systemRoles.includes(rol.nombre)) {
       return res.status(403).json({
         success: false,
         mensaje: 'No se puede eliminar un rol del sistema'

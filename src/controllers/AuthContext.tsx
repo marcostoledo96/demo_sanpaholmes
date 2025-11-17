@@ -11,6 +11,51 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Normaliza cualquier variante legacy (vendor/readonly) al set oficial de roles del panel.
+const normalizeRole = (role?: string | null): VendorUser['role'] => {
+  if (!role) {
+    return 'vendedor';
+  }
+
+  const roleName = role.toLowerCase();
+
+  if (roleName === 'admin') {
+    return 'admin';
+  }
+
+  if (roleName === 'visitador' || roleName === 'readonly') {
+    return 'visitador';
+  }
+
+  return 'vendedor';
+};
+
+// Convierte la respuesta del backend en el shape mínimo que el frontend necesita.
+const buildUserFromPayload = (payload: { username?: string; roles?: string[]; role?: string | null }): VendorUser | null => {
+  if (!payload?.username) {
+    return null;
+  }
+
+  return {
+    username: payload.username,
+    role: normalizeRole(payload.roles?.[0] ?? payload.role)
+  };
+};
+
+const parseStoredUser = (rawUser: string | null): VendorUser | null => {
+  if (!rawUser) {
+    return null;
+  }
+
+  try {
+    const data = JSON.parse(rawUser);
+    return buildUserFromPayload({ username: data.username, role: data.role });
+  } catch (error) {
+    console.error('Error al parsear usuario almacenado:', error);
+    return null;
+  }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<VendorUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,29 +65,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const restaurarSesion = async () => {
       const token = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
-      
-      // Validar formato de datos antiguos y limpiar si es necesario
-      if (savedUser) {
-        try {
-          const parsedUser = JSON.parse(savedUser);
-          if (!parsedUser.role || (parsedUser.username === 'admin' && parsedUser.role !== 'admin')) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            setLoading(false);
-            return;
-          }
-        } catch (e) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setLoading(false);
-          return;
-        }
+      const storedUser = parseStoredUser(localStorage.getItem('user'));
+
+      if (storedUser && storedUser.username === 'admin' && storedUser.role !== 'admin') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setLoading(false);
+        return;
       }
-      
-      if (token && savedUser) {
+
+      if (token) {
         try {
-          // Validar token con el backend
+          // Validar token con el backend para evitar sesiones zombis
           const response = await fetch(getApiUrl('/api/auth/me'), {
             method: 'GET',
             headers: {
@@ -54,8 +88,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (response.ok) {
             const data = await response.json();
             if (data.success) {
-              const parsedUser = JSON.parse(savedUser);
-              setUser(parsedUser);
+              const refreshedUser = buildUserFromPayload({
+                username: data.usuario?.username,
+                roles: data.usuario?.roles,
+                role: data.usuario?.role
+              });
+
+              if (refreshedUser) {
+                setUser(refreshedUser);
+                localStorage.setItem('user', JSON.stringify(refreshedUser));
+              } else {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setUser(null);
+              }
             } else {
               localStorage.removeItem('token');
               localStorage.removeItem('user');
@@ -101,19 +147,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (data.success && data.token) {
-        // Determinar el rol del usuario
-        let roleValue: 'admin' | 'vendor' = 'vendor';
-        if (Array.isArray(data.usuario.roles) && data.usuario.roles.length > 0) {
-          const firstRole = data.usuario.roles[0];
-          if (firstRole === 'admin') {
-            roleValue = 'admin';
-          }
+        // Siempre tomo el rol fresco del backend para reflejar cambios recientes
+        const userData = buildUserFromPayload({
+          username: data.usuario?.username,
+          roles: data.usuario?.roles,
+          role: data.usuario?.role
+        });
+
+        if (!userData) {
+          console.error('❌ AuthContext: Respuesta sin datos de usuario válidos');
+          return false;
         }
-        
-        const userData: VendorUser = {
-          username: data.usuario.username,
-          role: roleValue,
-        };
         
         setUser(userData);
         

@@ -211,6 +211,11 @@ Más allá de los requisitos mínimos, se implementaron las siguientes mejoras:
 - Usuario: `admin`
 - Contraseña: `admin123`
 
+### Roles del Panel
+- **Admin**: acceso total a usuarios, roles, catálogo y compras.
+- **Vendedor**: gestiona productos y seguimiento de pedidos.
+- **Visitador**: monitorea ventas en modo solo lectura para control operativo.
+
 ---
 
 ## Conclusión
