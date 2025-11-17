@@ -60,17 +60,44 @@ function verificarPermiso(permisoRequerido) {
         });
       }
 
-      // Verificamos que el usuario tenga el permiso
-      if (!req.usuario.permisos.includes(permisoRequerido)) {
-        return res.status(403).json({
-          success: false,
-          mensaje: `No tenés permiso para realizar esta acción (se requiere: ${permisoRequerido})`
-        });
+      // Si el usuario es admin (role hardcoded), tiene todos los permisos
+      if (req.usuario.role === 'admin') {
+        return next();
       }
 
-      next(); // El usuario tiene el permiso, continuamos
+      // Verificar permisos desde el array (compatibilidad con sistema anterior)
+      if (req.usuario.permisos && Array.isArray(req.usuario.permisos)) {
+        if (!req.usuario.permisos.includes(permisoRequerido)) {
+          return res.status(403).json({
+            success: false,
+            mensaje: `No tenés permiso para realizar esta acción (se requiere: ${permisoRequerido})`
+          });
+        }
+        return next();
+      }
+
+      // Si tiene role_id, verificar en la base de datos
+      if (req.usuario.role_id) {
+        const RoleModel = require('../models/RoleModel');
+        const tienePermiso = RoleModel.usuarioTienePermiso(req.usuario.id, permisoRequerido);
+        
+        if (!tienePermiso) {
+          return res.status(403).json({
+            success: false,
+            mensaje: `No tenés permiso para realizar esta acción (se requiere: ${permisoRequerido})`
+          });
+        }
+        return next();
+      }
+
+      // Si no tiene permisos definidos, denegar acceso
+      return res.status(403).json({
+        success: false,
+        mensaje: 'No tenés permisos asignados'
+      });
 
     } catch (error) {
+      console.error('Error al verificar permisos:', error);
       return res.status(500).json({
         success: false,
         mensaje: 'Error al verificar permisos'

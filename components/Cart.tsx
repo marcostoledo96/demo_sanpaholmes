@@ -1,13 +1,61 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { PoliceButton } from './PoliceButton';
-import { Trash2, Plus, Minus, ShoppingBag, FolderOpen } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag, FolderOpen, Package, AlertCircle } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
+import { API_URL } from '../config/api';
+
+interface StockInfo {
+  [productId: number]: number;
+}
 
 export function Cart() {
   const { cart, updateQuantity, removeFromCart, getTotal } = useCart();
   const navigate = useNavigate();
+  const [stockInfo, setStockInfo] = useState<StockInfo>({});
+  
+  // Cargar stock de productos en el carrito
+  useEffect(() => {
+    const cargarStock = async () => {
+      if (cart.length === 0) return;
+      
+      try {
+        const promises = cart.map(item =>
+          fetch(`${API_URL}/productos/${item.product.id}`)
+            .then(res => res.json())
+        );
+        
+        const results = await Promise.all(promises);
+        const stockData: StockInfo = {};
+        
+        results.forEach(result => {
+          if (result.success && result.producto) {
+            stockData[result.producto.id] = result.producto.stock;
+          }
+        });
+        
+        setStockInfo(stockData);
+      } catch (error) {
+        console.error('Error al cargar stock:', error);
+      }
+    };
+    
+    cargarStock();
+  }, [cart]);
+  
+  const getStockDisponible = (productId: number) => {
+    return stockInfo[productId] ?? 0;
+  };
+  
+  const tieneStockBajo = (productId: number) => {
+    const stock = getStockDisponible(productId);
+    return stock > 0 && stock < 5;
+  };
+  
+  const sinStock = (productId: number) => {
+    return getStockDisponible(productId) === 0;
+  };
 
   if (cart.length === 0) {
     return (
@@ -61,7 +109,29 @@ export function Cart() {
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <h3 className="text-white mb-1">{item.product.name}</h3>
-                      <p className="text-sm text-gray-400 bg-black/30 px-3 py-1 rounded-lg inline-block">#{item.product.id}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm text-gray-400 bg-black/30 px-3 py-1 rounded-lg inline-block">
+                          #{item.product.id}
+                        </p>
+                        
+                        {/* Indicador de stock */}
+                        {sinStock(item.product.id) ? (
+                          <div className="flex items-center gap-1 bg-red-500/20 text-red-400 px-3 py-1 rounded-lg border border-red-500/50">
+                            <AlertCircle className="w-4 h-4" />
+                            <span className="text-sm font-semibold">Sin stock</span>
+                          </div>
+                        ) : tieneStockBajo(item.product.id) ? (
+                          <div className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-lg border border-yellow-500/50">
+                            <Package className="w-4 h-4" />
+                            <span className="text-sm font-semibold">Stock bajo: {getStockDisponible(item.product.id)}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 bg-green-500/20 text-green-400 px-3 py-1 rounded-lg border border-green-500/50">
+                            <Package className="w-4 h-4" />
+                            <span className="text-sm font-semibold">Stock: {getStockDisponible(item.product.id)}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <button
                       onClick={() => removeFromCart(item.product.id)}

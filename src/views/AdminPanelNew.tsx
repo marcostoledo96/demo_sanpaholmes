@@ -7,7 +7,7 @@ import { useAuth } from '../controllers/AuthContext';
 import { PoliceButton } from './PoliceButton';
 import { 
   Package, ShoppingBag, Edit2, Trash2, Plus, 
-  FileText, CheckCircle, CheckCheck, X, Save 
+  FileText, CheckCircle, CheckCheck, X, Save, Shield 
 } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
@@ -823,6 +823,19 @@ export function AdminPanelNew() {
           </div>
           <h1 className="text-white mb-3">Administración del Sistema</h1>
           <p className="text-gray-400 text-lg">Gestión de productos y visualización de ventas</p>
+          
+          {/* Botón para acceder a roles */}
+          {user?.role === 'admin' && (
+            <div className="mt-4">
+              <PoliceButton
+                variant="secondary"
+                icon={Shield}
+                onClick={() => navigate('/vendor/roles')}
+              >
+                Gestionar Roles y Permisos
+              </PoliceButton>
+            </div>
+          )}
         </div>
 
         {/* Pestañas de navegación */}
