@@ -4,7 +4,7 @@ import { useAuth } from '../controllers/AuthContext';
 import { PoliceButton } from './PoliceButton';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
-import { Shield, UserCircle, Lock } from 'lucide-react';
+import { Shield, UserCircle, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function VendorLogin() {
@@ -12,6 +12,7 @@ export function VendorLogin() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login, user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -111,15 +112,28 @@ export function VendorLogin() {
                 <Lock className="w-5 h-5 text-[#fbbf24]" />
                 Contraseña
               </Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-[#0f0f0f] border-[#fbbf24]/30 text-white focus:border-[#fbbf24] rounded-xl h-12"
-                placeholder="Ingresá tu contraseña"
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-[#0f0f0f] border-[#fbbf24]/30 text-white focus:border-[#fbbf24] rounded-xl h-12 pr-12"
+                  placeholder="Ingresá tu contraseña"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#fbbf24] transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center gap-3">

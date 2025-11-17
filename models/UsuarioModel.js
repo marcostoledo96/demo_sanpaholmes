@@ -13,9 +13,19 @@ function obtenerUsuarioPorUsername(username) {
   const db = getDB();
   
   const usuario = db.prepare(`
-    SELECT id, username, password_hash, nombre_completo, email, role, activo
-    FROM usuarios
-    WHERE username = ? AND activo = 1
+    SELECT 
+      u.id, 
+      u.username, 
+      u.password_hash, 
+      u.nombre_completo, 
+      u.email, 
+      u.role_id,
+      u.activo,
+      r.nombre as role,
+      r.descripcion as role_descripcion
+    FROM usuarios u
+    LEFT JOIN roles r ON u.role_id = r.id
+    WHERE u.username = ? AND u.activo = 1
   `).get(username);
   
   db.close();
@@ -56,7 +66,12 @@ function obtenerEstadisticasUsuarios() {
   
   const stats = {
     totalUsuarios: db.prepare('SELECT COUNT(*) as count FROM usuarios WHERE activo = 1').get().count,
-    totalAdmins: db.prepare('SELECT COUNT(*) as count FROM usuarios WHERE role = "admin" AND activo = 1').get().count
+    totalAdmins: db.prepare(`
+      SELECT COUNT(*) as count 
+      FROM usuarios u
+      JOIN roles r ON u.role_id = r.id
+      WHERE r.nombre = "admin" AND u.activo = 1
+    `).get().count
   };
   
   db.close();
