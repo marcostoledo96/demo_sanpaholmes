@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../controllers/AuthContext';
 import { mockProducts } from '../data/mockProducts';
 import { PoliceButton } from './PoliceButton';
 import { Package, ShoppingBag, Eye, Edit2, Trash2, Plus, FileText, CheckCircle, Clock, CheckCheck } from 'lucide-react';

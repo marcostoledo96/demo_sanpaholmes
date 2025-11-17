@@ -1,0 +1,234 @@
+// MODELO: Producto
+// Maneja todas las operaciones de base de datos relacionadas con productos
+// Parte del patrón MVC - Modelo de datos para productos
+
+const { getDB } = require('./database');
+
+/**
+ * Obtener todos los productos activos (para el menú público)
+ * @returns {Array} Lista de productos activos
+ */
+function obtenerProductos() {
+  const db = getDB();
+  const productos = db.prepare(`
+    SELECT id, nombre, categoria, subcategoria, precio, stock, descripcion, imagen_url, activo
+    FROM productos
+    WHERE activo = 1
+    ORDER BY categoria, subcategoria, nombre
+  `).all();
+  db.close();
+  
+  return productos.map(p => ({
+    ...p,
+    activo: Boolean(p.activo),
+    disponible: Boolean(p.activo) // Alias para compatibilidad
+  }));
+}
+
+/**
+ * Obtener TODOS los productos (incluyendo inactivos) - para el panel admin
+ * @returns {Array} Lista completa de productos
+ */
+function obtenerTodosLosProductos() {
+  const db = getDB();
+  const productos = db.prepare(`
+    SELECT id, nombre, categoria, subcategoria, precio, stock, descripcion, imagen_url, activo
+    FROM productos
+    ORDER BY activo DESC, categoria, subcategoria, nombre
+  `).all();
+  db.close();
+  
+  return productos.map(p => ({
+    ...p,
+    activo: Boolean(p.activo),
+    disponible: Boolean(p.activo) // Alias para compatibilidad
+  }));
+}
+
+/**
+ * Obtener un producto por ID
+ * @param {number} id - ID del producto
+ * @returns {Object|null} Producto encontrado o null
+ */
+function obtenerProductoPorId(id) {
+  const db = getDB();
+  const producto = db.prepare(`
+    SELECT id, nombre, categoria, subcategoria, precio, stock, descripcion, imagen_url, activo
+    FROM productos
+    WHERE id = ?
+  `).get(id);
+  db.close();
+  
+  if (!producto) return null;
+  
+  return {
+    ...producto,
+    activo: Boolean(producto.activo),
+    disponible: Boolean(producto.activo)
+  };
+}
+
+/**
+ * Crear un nuevo producto
+ * @param {Object} datos - Datos del producto a crear
+ * @returns {Object} Producto creado con su ID
+ */
+function crearProducto(datos) {
+  const db = getDB();
+  
+  const stmt = db.prepare(`
+    INSERT INTO productos (nombre, categoria, subcategoria, precio, stock, descripcion, imagen_url, activo)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  
+  const result = stmt.run(
+    datos.nombre,
+    datos.categoria,
+    datos.subcategoria || null,
+    datos.precio,
+    datos.stock || 0,
+    datos.descripcion || null,
+    datos.imagen_url || null,
+    datos.activo ? 1 : 0
+  );
+  
+  db.close();
+  
+  return {
+    id: result.lastInsertRowid,
+    ...datos,
+    activo: Boolean(datos.activo)
+  };
+}
+
+/**
+ * Actualizar un producto existente
+ * @param {number} id - ID del producto
+ * @param {Object} datos - Datos actualizados
+ * @returns {Object|null} Producto actualizado o null si no existe
+ */
+function actualizarProducto(id, datos) {
+  const db = getDB();
+  
+  const stmt = db.prepare(`
+    UPDATE productos
+    SET nombre = ?,
+        categoria = ?,
+        subcategoria = ?,
+        precio = ?,
+        stock = ?,
+        descripcion = ?,
+        imagen_url = ?,
+        activo = ?
+    WHERE id = ?
+  `);
+  
+  const result = stmt.run(
+    datos.nombre,
+    datos.categoria,
+    datos.subcategoria || null,
+    datos.precio,
+    datos.stock,
+    datos.descripcion || null,
+    datos.imagen_url || null,
+    datos.activo ? 1 : 0,
+    id
+  );
+  
+  db.close();
+  
+  if (result.changes === 0) {
+    return null; // No se encontró el producto
+  }
+  
+  return {
+    id: parseInt(id),
+    ...datos,
+    activo: Boolean(datos.activo)
+  };
+}
+
+/**
+ * Eliminar un producto (soft delete - marca como inactivo)
+ * @param {number} id - ID del producto
+ * @returns {boolean} true si se eliminó correctamente
+ */
+function eliminarProducto(id) {
+  const db = getDB();
+  
+  const stmt = db.prepare(`
+    UPDATE productos
+    SET activo = 0
+    WHERE id = ?
+  `);
+  
+  const result = stmt.run(id);
+  db.close();
+  
+  return result.changes > 0;
+}
+
+/**
+ * Eliminar un producto DEFINITIVAMENTE de la base de datos (hard delete)
+ * @param {number} id - ID del producto
+ * @returns {boolean} true si se eliminó correctamente
+ */
+function eliminarProductoPermanente(id) {
+  const db = getDB();
+  
+  try {
+    // Iniciar transacción para eliminar de forma segura
+    db.prepare('BEGIN TRANSACTION').run();
+    
+    // Eliminar el producto definitivamente
+    const stmt = db.prepare(`
+      DELETE FROM productos
+      WHERE id = ?
+    `);
+    
+    const result = stmt.run(id);
+    
+    // Confirmar transacción
+    db.prepare('COMMIT').run();
+    db.close();
+    
+    return result.changes > 0;
+  } catch (error) {
+    // Si hay error, revertir cambios
+    db.prepare('ROLLBACK').run();
+    db.close();
+    throw error;
+  }
+}
+
+/**
+ * Actualizar solo el stock de un producto
+ * @param {number} id - ID del producto
+ * @param {number} nuevoStock - Nueva cantidad en stock
+ * @returns {boolean} true si se actualizó correctamente
+ */
+function actualizarStock(id, nuevoStock) {
+  const db = getDB();
+  
+  const stmt = db.prepare(`
+    UPDATE productos
+    SET stock = ?
+    WHERE id = ?
+  `);
+  
+  const result = stmt.run(nuevoStock, id);
+  db.close();
+  
+  return result.changes > 0;
+}
+
+module.exports = {
+  obtenerProductos,
+  obtenerTodosLosProductos,
+  obtenerProductoPorId,
+  crearProducto,
+  actualizarProducto,
+  eliminarProducto,
+  eliminarProductoPermanente,
+  actualizarStock
+};

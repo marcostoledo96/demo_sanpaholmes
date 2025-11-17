@@ -34,5 +34,5 @@ export interface Order {
 
 export interface VendorUser {
   username: string;
-  role: 'vendor';
+  role: 'vendor' | 'admin'; // 🔧 Permitir tanto vendor como admin
 }

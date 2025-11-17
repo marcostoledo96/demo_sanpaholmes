@@ -1,21 +1,32 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { CartProvider } from './context/CartContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { Navbar } from './components/Navbar';
-import { Footer } from './components/Footer';
-import { LandingPage } from './components/LandingPage';
-import { Menu } from './components/Menu';
-import { Cart } from './components/Cart';
-import { Checkout } from './components/Checkout';
-import { OrderConfirmation } from './components/OrderConfirmation';
-import { VendorLogin } from './components/VendorLogin';
-import { AdminPanelNew } from './components/AdminPanelNew';
-import { Toaster } from './components/ui/sonner';
+import { CartProvider } from './controllers/CartContext';
+import { AuthProvider, useAuth } from './controllers/AuthContext';
+import { Navbar } from './views/Navbar';
+import { Footer } from './views/Footer';
+import { LandingPage } from './views/LandingPage';
+import { Menu } from './views/Menu';
+import { Cart } from './views/Cart';
+import { Checkout } from './views/Checkout';
+import { OrderConfirmation } from './views/OrderConfirmation';
+import { VendorLogin } from './views/VendorLogin';
+import { AdminPanelNew } from './views/AdminPanelNew';
+import { Toaster } from './views/ui/sonner';
 
+// Componente para proteger rutas que requieren autenticación
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   
+  // Mientras está cargando, mostrar pantalla de carga
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-white text-xl">Cargando...</div>
+      </div>
+    );
+  }
+  
+  // Si no hay usuario autenticado, redirigir al login
   if (!user) {
     return <Navigate to="/vendor/login" replace />;
   }

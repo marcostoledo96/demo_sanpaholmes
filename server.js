@@ -1,10 +1,11 @@
-// Servidor principal con Express - Versión DEMO
-// Acá está toda la configuración del servidor y las rutas de la API
-// IMPORTANTE: Esta versión usa JSON como base de datos (solo lectura para visitantes)
+// Servidor principal con Express - Arquitectura MVC
+// Backend organizado según el patrón Modelo-Vista-Controlador
+// Servidor Express que sirve el frontend React y la API REST
 
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -18,41 +19,11 @@ app.use(express.urlencoded({ extended: true })); // Para leer formularios
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Rutas de la API - Ahora usan JSON en lugar de PostgreSQL
-const productosRouter = require('./api/productos');
-const comprasRouter = require('./api/compras');
-const authRouter = require('./api/auth');
+// Rutas de la API - Arquitectura MVC
+// Todas las rutas están centralizadas en routes/index.js
+const apiRoutes = require('./routes');
 
-app.use('/api/productos', productosRouter);
-app.use('/api/compras', comprasRouter);
-app.use('/api/auth', authRouter);
-
-// Ruta de prueba para verificar que el servidor funciona
-// Esta es una versión DEMO que usa JSON, así que solo verificamos que la API responda
-app.get('/api/health', async (req, res) => {
-  try {
-    res.json({
-      success: true,
-      mensaje: '✅ API funcionando correctamente (versión DEMO con JSON)',
-      timestamp: new Date().toISOString(),
-      demo: true,
-      database: {
-        type: 'JSON',
-        connected: true,
-        readonly: true,
-        info: 'Esta demo usa JSON como base de datos. Las operaciones de escritura solo se simulan.'
-      },
-      environment: process.env.NODE_ENV || 'development'
-    });
-  } catch (error) {
-    console.error('❌ Error en health check:', error);
-    res.status(503).json({
-      success: false,
-      mensaje: '❌ Error en el servidor',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
+app.use('/api', apiRoutes);
 
 // Ruta para la raíz - sirve el frontend
 app.get('/', (req, res) => {
@@ -77,18 +48,16 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Solo iniciamos el servidor si no estamos en Vercel
-// En Vercel, esto se maneja automáticamente
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`\n🚀 Servidor corriendo en http://localhost:${PORT}`);
-    console.log(`📋 API Health: http://localhost:${PORT}/api/health`);
-    console.log(`🛍️ API Productos: http://localhost:${PORT}/api/productos`);
-    console.log(`🛒 API Compras: http://localhost:${PORT}/api/compras`);
-    console.log(`🔐 API Auth: http://localhost:${PORT}/api/auth/login\n`);
-  });
-}
+// Iniciar el servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`\n🚀 Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🏗️  Arquitectura: MVC (Modelo-Vista-Controlador)`);
+  console.log(`📋 API Health: http://localhost:${PORT}/api/health`);
+  console.log(`🛍️ API Productos: http://localhost:${PORT}/api/productos`);
+  console.log(`🛒 API Compras: http://localhost:${PORT}/api/compras`);
+  console.log(`🔐 API Auth: http://localhost:${PORT}/api/auth/login\n`);
+});
 
-// Exportamos la app para Vercel
+// Exportar para Vercel
 module.exports = app;
