@@ -824,6 +824,9 @@ export function AdminPanelNew() {
           <h1 className="text-white mb-3">Administración del Sistema</h1>
           <p className="text-gray-400 text-lg">Gestión de productos y visualización de ventas</p>
           
+          {/* Debug: Mostrar rol actual en consola */}
+          {console.log('👤 AdminPanel - User role:', user?.role, 'Full user:', user)}
+          
           {/* Botón para acceder a gestión de usuarios */}
           {user?.role === 'admin' && (
             <div className="mt-4">
