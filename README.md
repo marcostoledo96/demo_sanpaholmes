@@ -1,263 +1,238 @@
-# SanpaHolmes - Sistema de Carrito de Compras
+# SanpaHolmes – Sistema de pedidos y gestión de ventas para eventos
 
-Sistema web de e-commerce desarrollado para el evento Scout SanpaHolmes 2025.
+**Demo pública:** https://demo-sanpaholmes.vercel.app
 
----
+Hola, soy **Marcos Toledo** y este es el sistema que desarrollé para resolver un problema muy concreto:  
+cuando organizás un evento con mucha gente, los pedidos de comida y bebida se vuelven difíciles de ordenar y seguir.
 
-## Descripción
-
-SanpaHolmes es un sistema de carrito de compras para gestionar ventas durante eventos. Los compradores pueden hacer pedidos de comida y bebidas a través de una interfaz web, mientras los organizadores administran productos y visualizan ventas en tiempo real.
-
-### Características
-
-- Carrito de compras con gestión en tiempo real
-- Sistema de autenticación JWT para administradores  
-- Panel de administración para productos y ventas
-- Proceso de checkout con validación
-- Diseño responsive para móviles y tablets
-- Integración con WhatsApp para notificaciones
-- Exportación a Google Sheets
-- Base de datos SQLite con CRUD completo
+Entre pedidos anotados en papel, mensajes sueltos por WhatsApp, cambios de último momento y poca visibilidad del stock real, es muy fácil cometer errores y perder dinero.  
+SanpaHolmes nació justamente para eso: **ordenar el caos de los pedidos en eventos** y **dejar de anotar en papel**.
 
 ---
 
-## Arquitectura
+## ¿Qué es SanpaHolmes?
 
-El proyecto usa el patrón **MVC (Modelo-Vista-Controlador)**:
+SanpaHolmes es un sistema web de carrito de compras pensado para eventos con alto volumen de ventas, donde se necesita:
 
-- **Modelo**: Gestiona datos y operaciones de base de datos
-- **Vista**: Maneja la interfaz de usuario
-- **Controlador**: Procesa solicitudes y coordina modelo-vista
+- Tomar pedidos de comida y bebidas desde el celular.
+- Gestionar ventas en tiempo real.
+- Tener un control claro del stock disponible.
+- Avisar a la persona cuando su pedido está listo para retirar.
+- Cerrar el evento con estadísticas y números claros.
 
----
-
-## Tecnologías
-
-### Backend
-- Node.js 18+
-- Express 4.18
-- SQLite (better-sqlite3)
-- JWT (jsonwebtoken)
-- Bcrypt
-
-### Frontend
-- React 18
-- TypeScript
-- Vite 5
-- Tailwind CSS 3
-- React Router DOM 6
+Lo utilicé en un evento Scout real, pero la solución es totalmente adaptable a otros contextos.
 
 ---
 
-## Estructura del Proyecto
+## ¿A quién le puede servir?
 
-```
-demo_sanpaholmes/
-│
-├── 📂 Backend (Node.js + Express)
-│   │
-│   ├── models/                    # 🗄️ Capa de Datos - Interacción con SQLite
-│   │   ├── database.js           # Conexión a base de datos (con soporte Vercel /tmp)
-│   │   ├── ProductoModel.js      # CRUD de productos
-│   │   ├── CompraModel.js        # CRUD de compras/ventas
-│   │   └── UsuarioModel.js       # CRUD de usuarios y autenticación
-│   │
-│   ├── controllers/               # 🎮 Controladores - Lógica de negocio
-│   │   ├── ProductoController.js # Gestión de productos
-│   │   ├── CompraController.js   # Gestión de compras y estadísticas
-│   │   └── AuthController.js     # Login, JWT y verificación de sesión
-│   │
-│   ├── routes/                    # 🛣️ Rutas - Endpoints de la API REST
-│   │   ├── index.js              # Router principal
-│   │   ├── productos.js          # /api/productos (con bloqueo DEMO en Vercel)
-│   │   ├── compras.js            # /api/compras (con bloqueo DEMO en Vercel)
-│   │   └── auth.js               # /api/auth (login, me)
-│   │
-│   ├── middleware/                # 🔐 Middlewares
-│   │   └── auth.js               # Verificación JWT y permisos
-│   │
-│   ├── db/                        # 💾 Base de Datos
-│   │   ├── sanpaholmes.db        # SQLite database (con productos y compras seed)
-│   │   ├── init.js               # Script de inicialización
-│   │   ├── reset.js              # Script para resetear DB
-│   │   └── migrations/           # Scripts de migración de esquema
-│   │
-│   └── server.js                  # ⚡ Servidor Express principal
-│
-├── 📂 Frontend (React + TypeScript + Vite)
-│   │
-│   ├── src/
-│   │   ├── views/                # 📱 Componentes de Páginas
-│   │   │   ├── LandingPage.tsx  # Página principal con banner DEMO
-│   │   │   ├── Menu.tsx         # Catálogo de productos por categoría
-│   │   │   ├── Cart.tsx         # Carrito de compras (con scroll to top)
-│   │   │   ├── Checkout.tsx     # Proceso de pago y confirmación
-│   │   │   ├── VendorLogin.tsx  # Login de administradores
-│   │   │   ├── AdminPanel.tsx   # Panel de administración
-│   │   │   ├── OrderConfirmation.tsx  # Confirmación de pedido
-│   │   │   ├── ProductCard.tsx  # Tarjeta individual de producto
-│   │   │   ├── CategoryBadge.tsx # Badge de categoría
-│   │   │   ├── Navbar.tsx       # Barra de navegación
-│   │   │   ├── Footer.tsx       # Pie de página
-│   │   │   ├── PoliceButton.tsx # Botón con diseño temático
-│   │   │   ├── ImageWithFallback.tsx # Imagen con fallback
-│   │   │   └── ui/              # Componentes UI reutilizables (shadcn/ui)
-│   │   │
-│   │   ├── controllers/          # 🔄 Estado Global (Context API)
-│   │   │   ├── AuthContext.tsx  # Contexto de autenticación (JWT, login, logout)
-│   │   │   └── CartContext.tsx  # Contexto del carrito (agregar, quitar, actualizar)
-│   │   │
-│   │   ├── config/               # ⚙️ Configuración
-│   │   │   └── api.ts           # URLs de API (dev/prod)
-│   │   │
-│   │   ├── types/                # 📝 Tipos TypeScript
-│   │   │   └── index.ts         # Interfaces (Producto, Compra, Usuario)
-│   │   │
-│   │   ├── services/             # 🌐 Servicios HTTP
-│   │   │   └── api.ts           # Cliente API con fetch
-│   │   │
-│   │   ├── utils/                # 🛠️ Utilidades
-│   │   │   └── helpers.ts       # Funciones auxiliares
-│   │   │
-│   │   ├── styles/               # 🎨 Estilos globales
-│   │   │   └── index.css        # Tailwind CSS + estilos personalizados
-│   │   │
-│   │   ├── App.tsx              # Componente raíz con rutas
-│   │   └── main.tsx             # Entry point de React
-│   │
-│   ├── public/                   # 📁 Archivos estáticos
-│   │   ├── images/              # Imágenes (escudos, logos, productos)
-│   │   └── uploads/             # Uploads de comprobantes (en dev)
-│   │
-│   ├── components/               # 🧩 Componentes legacy (deprecados)
-│   │   ├── AdminPanel.tsx
-│   │   ├── Cart.tsx
-│   │   └── ProductCard.tsx
-│   │
-│   └── index.html               # HTML principal
-│
-├── 📂 Scripts
-│   ├── scripts/                  # 🔧 Scripts de mantenimiento
-│   │   ├── add-listo-field.js
-│   │   ├── migrate-comprobante-to-text.js
-│   │   └── update-admin-password.js
-│   │
-│   └── google-apps-script.js    # Script para integración con Google Sheets
-│
-├── 📂 Configuración
-│   ├── .env.example             # Ejemplo de variables de entorno
-│   ├── vercel.json              # Configuración de Vercel
-│   ├── vite.config.ts           # Configuración de Vite
-│   ├── tailwind.config.js       # Configuración de Tailwind CSS
-│   ├── tsconfig.json            # Configuración de TypeScript
-│   ├── postcss.config.cjs       # Configuración de PostCSS
-│   ├── package.json             # Dependencias y scripts
-│   └── .gitignore               # Archivos ignorados por Git
-│
-└── 📂 Documentación
-    ├── README.md                # Este archivo
-    ├── FIX_VERCEL_SQLITE.md     # Solución a problemas de SQLite en Vercel
-    └── VERIFICACION_FINAL.md    # Checklist de verificación del proyecto
-```
+Aunque su origen es Scout, SanpaHolmes se puede aplicar a:
 
-### 📋 Descripción de Capas
-
-#### Backend (MVC)
-- **Modelo**: Gestiona datos y operaciones de base de datos SQLite
-- **Vista**: No aplica (API REST devuelve JSON)
-- **Controlador**: Procesa solicitudes HTTP y coordina modelo-respuesta
-
-#### Frontend (Component-Based)
-- **Views**: Páginas completas de la aplicación
-- **Controllers**: Estado global compartido (Auth, Cart)
-- **Components**: Componentes reutilizables y UI primitivos
-
-#### Características Especiales
-- **Modo DEMO en Vercel**: Bloquea operaciones de escritura (POST, PUT, DELETE) en producción
-- **Scroll to Top**: Navegación al carrito inicia desde arriba
-- **Banner de Advertencia**: Visible en producción indicando falta de persistencia
-- **JWT Auth**: Autenticación segura con tokens para panel admin
-- **Responsive**: Diseño adaptativo para móviles, tablets y desktop
+- **Organizaciones Scout** que gestionan campamentos, fogones, kermeses o festivales.
+- **Centros de estudiantes** que organizan kioscos, peñas o ferias.
+- **Comisiones de eventos** (clubes, parroquias, barrios, asociaciones civiles).
+- **Pequeños comercios** que quieren un sistema simple para tomar y controlar pedidos.
+- Cualquier equipo que quiera:
+  - **ordenar el caos de los pedidos en eventos**
+  - **dejar de anotar en papel**
+  - y tener una visión clara de lo que se vende.
 
 ---
 
-## API Endpoints
+## Problema que resuelve
 
-### Productos
-```
-GET    /api/productos          # Listar productos activos
-GET    /api/productos/:id      # Obtener producto por ID
-POST   /api/productos          # Crear producto (auth)
-PUT    /api/productos/:id      # Actualizar producto (auth)
-DELETE /api/productos/:id      # Eliminar producto (auth)
-```
+SanpaHolmes apunta a cuatro puntos clave:
 
-### Compras
-```
-POST   /api/compras                     # Crear compra (público)
-GET    /api/compras                     # Listar compras (auth)
-GET    /api/compras/estadisticas/ventas # Estadísticas (auth)
-GET    /api/compras/:id                 # Obtener compra (auth)
-PATCH  /api/compras/:id/estado          # Actualizar estado (auth)
-DELETE /api/compras/:id                 # Eliminar compra (auth)
-```
+1. **Orden en los pedidos**  
+   Todos los pedidos quedan registrados en un solo lugar: quién pidió, qué pidió, cuánto debe pagar y en qué estado está el pedido.
 
-### Autenticación
-```
-POST   /api/auth/login          # Login de administrador
-GET    /api/auth/me             # Verificar sesión actual (requiere auth)
-```
+2. **Control real de stock**  
+   Cada venta descuenta stock en la base de datos.  
+   Si alguien intenta vender más cantidad de la que hay disponible, el sistema lo bloquea y muestra un mensaje claro.
 
-**Nota DEMO**: En Vercel, las rutas POST/PUT/DELETE de productos y POST de compras están bloqueadas y devuelven `403 Forbidden`.
+3. **Flujo de venta ágil en eventos masivos**  
+   El sistema está pensado para manejar picos de demanda, con un flujo simple de:
+   - selección de productos  
+   - armado de carrito  
+   - confirmación de compra  
+   - actualización de stock  
+   - seguimiento del pedido.
+
+4. **Comunicación clara con las personas que compran**  
+   Se integra con WhatsApp para notificar cuando un pedido está listo para retirar, evitando confusiones y tiempos muertos.
 
 ---
 
-## Base de Datos
+## Resumen de valor
 
-### Esquema principal
+En pocas palabras, SanpaHolmes te ayuda a:
 
-**Tabla productos**
-```sql
-CREATE TABLE productos (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombre TEXT NOT NULL,
-  descripcion TEXT,
-  precio REAL NOT NULL,
-  categoria TEXT NOT NULL,
-  imagen TEXT,
-  activo INTEGER DEFAULT 1,
-  creado_en TEXT DEFAULT CURRENT_TIMESTAMP
-);
-```
+- **ordenar el caos de los pedidos en eventos**  
+- **dejar de anotar en papel**  
+- mejorar la experiencia tanto de quienes organizan como de quienes compran  
+- tener datos concretos para tomar decisiones en próximos eventos.
 
-**Tabla compras**
-```sql
-CREATE TABLE compras (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  numero_orden TEXT UNIQUE NOT NULL,
-  comprador_nombre TEXT NOT NULL,
-  comprador_telefono TEXT NOT NULL,
-  comprador_mesa TEXT,
-  items TEXT NOT NULL,
-  total REAL NOT NULL,
-  metodo_pago TEXT NOT NULL,
-  comprobante_archivo TEXT,
-  estado TEXT DEFAULT 'pendiente',
-  abonado INTEGER DEFAULT 0,
-  listo INTEGER DEFAULT 0,
-  entregado INTEGER DEFAULT 0,
-  fecha TEXT DEFAULT CURRENT_TIMESTAMP
-);
-```
+---
 
-**Tabla usuarios**
-```sql
-CREATE TABLE usuarios (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  nombre_completo TEXT,
-  email TEXT,
+## Funcionalidades principales
+
+### 1. Control de stock
+
+- Configuración de stock por producto.
+- Descuento automático de stock al confirmar una compra.
+- Validación de stock suficiente antes de aprobar cada pedido.
+- Prevención de ventas por encima de lo disponible.
+
+### 2. Sistema de roles y permisos
+
+El sistema diferencia claramente qué puede hacer cada tipo de usuario:
+
+- **Admin**  
+  - Gestiona productos.  
+  - Gestiona compras.  
+  - Gestiona usuarios, roles y permisos.
+
+- **Vendedor**  
+  - Gestiona productos y compras.  
+  - Se enfoca en la operación diaria del evento.
+
+- **Visitador**  
+  - Solo lectura de productos y compras, sin capacidad de modificar datos.
+
+Cada ruta crítica está protegida por middlewares de autenticación (JWT) y verificación de permisos, para garantizar que solo las personas autorizadas puedan realizar acciones sensibles.
+
+### 3. Experiencia optimizada para mobile
+
+El frontend está diseñado pensando en su uso desde teléfonos y tablets:
+
+- Interfaz clara para seleccionar productos y cantidades.
+- Carrito intuitivo.
+- Proceso de checkout sencillo y guiado.
+- Panel para el equipo organizador usable en tablets y notebooks.
+
+Está preparado para funcionar cómodamente en el contexto real de un evento.
+
+### 4. Agilidad en ventas masivas
+
+El flujo completo está optimizado para:
+
+- Ingresar pedidos rápidamente.
+- Minimizar errores de carga.
+- Visualizar de forma clara:
+  - monto total,
+  - método de pago,
+  - estado de cada pedido (pendiente, listo, entregado).
+
+Esto permite sostener un ritmo alto de ventas sin perder el control.
+
+### 5. Integración con WhatsApp
+
+SanpaHolmes se integra con WhatsApp para:
+
+- Enviar avisos cuando el pedido está listo para retirar.
+- Reducir la acumulación de personas esperando en el mismo lugar.
+- Mejorar la comunicación sin desarrollar un sistema de notificaciones complejo desde cero.
+
+### 6. Estadísticas de ventas
+
+El sistema permite consultar:
+
+- Total vendido en un período.
+- Cantidad de pedidos realizados.
+- Productos más vendidos.
+- Información que ayuda a decidir:
+  - qué comprar para el próximo evento,
+  - qué productos funcionan mejor,
+  - qué ajustes hacer en precios y stock.
+
+---
+
+## Tecnologías utilizadas
+
+Aunque el foco del proyecto es resolver un problema práctico, también cuidé la arquitectura y las tecnologías elegidas.
+
+**Backend**
+
+- Node.js + Express  
+- SQLite (mediante better-sqlite3)  
+- JWT para autenticación y autorización  
+- Bcrypt para hash de contraseñas  
+- Patrón tipo MVC (modelos, controladores, rutas, middlewares)
+
+**Frontend**
+
+- React  
+- TypeScript  
+- Vite  
+- Tailwind CSS  
+- Context API para autenticación y carrito
+
+El proyecto está desplegado en Vercel, considerando las particularidades de usar SQLite en ese entorno.
+
+---
+
+## Estado actual del proyecto
+
+- Es un proyecto **listo para utilizar**, que **ya se usó en un evento real**.
+- El flujo completo está implementado:
+  - gestión de productos,  
+  - carrito,  
+  - creación de compras,  
+  - control de stock,  
+  - estadísticas.
+
+Lo único que **no incluí en esta primera versión** es una **pasarela de pago real** (por ejemplo, Mercado Pago).  
+En el evento donde se utilizó, los pagos se manejaron con efectivo, transferencia o QR mostrado aparte.  
+La integración con una pasarela de pagos está pensada como trabajo futuro.
+
+---
+
+## ¿Se puede adaptar a otros contextos?
+
+Sí. SanpaHolmes está pensado para ser adaptable:
+
+- Podés cambiar productos, categorías y precios.
+- Podés ajustar los roles según la estructura de tu organización.
+- Podés usarlo en red local o desplegarlo online según la necesidad.
+
+Si organizás eventos y querés profesionalizar la forma en que gestionás pedidos y stock, este proyecto es una base sólida para hacerlo.
+
+---
+
+Si te interesa ver el código, extenderlo o adaptarlo a tu propio contexto, todo está disponible en este repositorio.  
+SanpaHolmes es el resultado de un caso real llevado a código, con el objetivo de que la organización de ventas en eventos sea mucho más clara, ordenada y medible.
+
+---
+
+## Información adicional para desarrolladores
+
+Esta sección es opcional para quien solo quiere usar el sistema, pero útil para quienes quieran mirar el código o adaptarlo.
+
+### Tecnologías principales
+
+**Backend**
+
+- Node.js + Express  
+- SQLite (mediante better-sqlite3)  
+- JWT para autenticación y autorización  
+- Bcrypt para hash de contraseñas  
+- Patrón tipo MVC (modelos, controladores, rutas, middlewares)
+
+**Frontend**
+
+- React  
+- TypeScript  
+- Vite  
+- Tailwind CSS  
+- Context API para autenticación y carrito
+
+### Notas sobre deployment actual
+
+- El proyecto está desplegado en **Vercel**.
+- En ese entorno, la base de datos SQLite corre en `/tmp`, por lo que los datos pueden reiniciarse en cada deploy o reinicio frío.
+- Para uso de producción a largo plazo, la recomendación natural es migrar a una base de datos persistente (por ejemplo, PostgreSQL o un servicio gestionado equivalente).
+
+Para más detalles técnicos de deploy, migraciones y scripts, se puede consultar la documentación interna del repositorio.
   role TEXT DEFAULT 'vendedor',
   activo INTEGER DEFAULT 1,
   creado_en TEXT DEFAULT CURRENT_TIMESTAMP
@@ -283,13 +258,13 @@ El proyecto está desplegado en **Vercel** con configuración serverless:
 }
 ```
 
-**⚠️ Limitaciones en Vercel:**
+**Limitaciones en Vercel:**
 - SQLite usa `/tmp` (se resetea en cada deploy o cold start)
 - Operaciones de escritura bloqueadas en modo DEMO
 - Banner de advertencia visible en producción
 - Los datos no persisten entre deploys
 
-**🔧 Variables de Entorno requeridas:**
+**Variables de Entorno requeridas:**
 ```bash
 JWT_SECRET=sanpaholmes-secret-key-2025
 NODE_ENV=production
@@ -446,38 +421,38 @@ node scripts/update-admin-password.js
 
 ## Características Implementadas
 
-✅ **Sistema de Carrito**
+**Sistema de Carrito**
 - Agregar/quitar productos
 - Actualizar cantidades
 - Calcular total automático
 - Persistencia en localStorage
 
-✅ **Autenticación JWT**
+**Autenticación JWT**
 - Login seguro con bcrypt
 - Tokens con expiración
 - Refresh automático
 - Logout con limpieza de sesión
 
-✅ **Panel de Administración**
+**Panel de Administración**
 - Vista de productos (solo lectura en DEMO)
 - Lista de ventas en tiempo real
 - Filtrado por nombre/teléfono/mesa
 - Estadísticas de ventas
 - Exportación a Google Sheets
 
-✅ **Modo DEMO en Vercel**
+**Modo DEMO en Vercel**
 - Bloqueo de operaciones de escritura
 - Banner de advertencia visible
 - Base de datos en /tmp (temporal)
 - Solo lectura de productos y ventas
 
-✅ **Diseño Responsive**
+**Diseño Responsive**
 - Mobile-first approach
 - Adaptado a tablets y desktop
 - Navegación táctil optimizada
 - Scroll to top en carrito
 
-✅ **Integraciones**
+**Integraciones**
 - WhatsApp para notificaciones
 - Google Sheets para exportación
 - Imágenes con fallback automático
