@@ -232,6 +232,8 @@ Esta sección es opcional para quien solo quiere usar el sistema, pero útil par
 - En ese entorno, la base de datos SQLite corre en `/tmp`, por lo que los datos pueden reiniciarse en cada deploy o reinicio frío.
 - Para uso de producción a largo plazo, la recomendación natural es migrar a una base de datos persistente (por ejemplo, PostgreSQL o un servicio gestionado equivalente).
 
+**Nota histórica:** En una versión anterior en producción se utilizó **PostgreSQL** (servicio Neon). En la rama/versión actual el proyecto corre con **SQLite**; esta migración se hizo intencionalmente para no afectar datos ni configuraciones en mi cuenta de Neon durante pruebas y despliegues. Si se desea restaurar la integración con PostgreSQL/Neon, hay scripts y notas de migración en el repositorio para hacerlo de forma segura.
+
 Para más detalles técnicos de deploy, migraciones y scripts, se puede consultar la documentación interna del repositorio.
   role TEXT DEFAULT 'vendedor',
   activo INTEGER DEFAULT 1,
@@ -374,20 +376,6 @@ node scripts/migrate-comprobante-to-text.js
 # Actualizar contraseña de admin
 node scripts/update-admin-password.js
 ```
-
----
-
-## Credenciales de Acceso
-
-### Administrador
-- **URL**: https://demo-sanpaholmes.vercel.app/vendor/login
-- **Usuario**: `admin`
-- **Contraseña**: `admin123`
-
-### Demo Pública
-- **URL**: https://demo-sanpaholmes.vercel.app
-- **Acceso**: Sin login requerido
-- **Limitaciones**: No se pueden crear compras reales (modo DEMO)
 
 ---
 
